@@ -10,6 +10,7 @@ ofxAzureKinect::ofxAzureKinect()
 	capture = NULL;
 	std::cout << "RecoredOption : Yes:0, Mo:1 " << std::endl;
 	cin >> isRecored;
+	isUpload = false;
 }
 
 
@@ -84,8 +85,13 @@ void ofxAzureKinect::captureImage(){
 			isRecored = true;
 		}
 
-
-		imageTexture->Upload(pixles, res.x, res.y, 4, 0);
+		if (!isUpload) {
+			imageTexture->Upload(pixles, res.x, res.y, 4, 0);
+			isUpload = true;
+		}
+		else {
+			imageTexture->Update(pixles, res.x, res.y, 4, 0);
+		}
 		k4a_image_release(color_image);
 		k4a_capture_release(capture);
 	}
@@ -123,7 +129,15 @@ void ofxAzureKinect::captureDepth() {
 		}
 
 
-		imageTexture->Upload(pixles, res.x, res.y, 4, 1);
+		
+
+		if (!isUpload) {
+			imageTexture->Upload(pixles, res.x, res.y, 4, 1);
+			isUpload = true;
+		}
+		else {
+			imageTexture->Update(pixles, res.x, res.y, 4, 1);
+		}
 	}
 	else {
 		cout << "failed to capture depth image" << endl;

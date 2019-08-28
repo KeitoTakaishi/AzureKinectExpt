@@ -24,5 +24,6 @@ class ofApp : public ofBaseApp{
 
 		ofxAzureKinect* kinect;
 		ofVec2f scale = ofVec2f(1020, 720);
+
 };
 	

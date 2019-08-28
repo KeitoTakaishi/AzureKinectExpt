@@ -94,14 +94,14 @@ void ofxTexture::Upload(uint8_t* data, int w, int h, int ch, int textureMode) {
 		int offSet = 0;
 		for (int y = 0; y < 512; y++) {
 			for (int x = 0; x < 512; x++) {
-				int index = (x + y * w) * 2;
-				int ind = (x + y * w);
+				int depthDataIndex = (x + y * w) * 2;
+				int pixleDataIndex = (x + y * w);
 				//low data[index], up data[index + 1]
-				unsigned short depth16 = (unsigned short)data[index];
-				unsigned short depth16up = (unsigned short)data[index + 1];
+				unsigned short depth16 = (unsigned short)data[depthDataIndex];
+				unsigned short depth16up = (unsigned short)data[depthDataIndex + 1];
 				depth16up = depth16up << 8;
 				depth16 = (depth16 | depth16up);
-				depth[ind] = depth16;
+				depth[pixleDataIndex] = depth16;
 			}
 		}
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, depth);
@@ -109,12 +109,14 @@ void ofxTexture::Upload(uint8_t* data, int w, int h, int ch, int textureMode) {
 	
 }
 
-
-void ofxTexture::Update(uint8_t* data, int w, int h) {
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_BGRA, GL_UNSIGNED_BYTE, data);
-	//glTexSubImage2D(GL_TEXTURE_2D, 0,0,0,w,h,GL_RGB,GL_UNSIGNED_BYTE,reinterpret_cast<unsigned char*> (data)); 
+void ofxTexture::Update(uint8_t* data, int w, int h, int textureMode) {
+	if (textureMode == 0) {
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_BGRA, GL_UNSIGNED_BYTE, data);
+	}
+	else if (textureMode == 1) {
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, data);
+	}
+	 
 }
 
 

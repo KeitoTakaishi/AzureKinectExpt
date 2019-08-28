@@ -33,10 +33,12 @@ private:
 	k4a_device_configuration_t config;
 	k4a_capture_t capture;
 
+
 	k4a_image_t color_image;
 	k4a_image_t depth_image;
 	
 	bool isRecored;
+	bool isUpload;
 
 	ofxTexture* imageTexture;
 	//ofxDisplay*  colorDisplay;
