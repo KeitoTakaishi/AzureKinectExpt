@@ -90,7 +90,7 @@ void ofxAzureKinect::captureImage(){
 			isUpload = true;
 		}
 		else {
-			imageTexture->Update(pixles, res.x, res.y, 4, 0);
+			imageTexture->Update(pixles, res.x, res.y, 0);
 		}
 		k4a_image_release(color_image);
 		k4a_capture_release(capture);
@@ -136,7 +136,7 @@ void ofxAzureKinect::captureDepth() {
 			isUpload = true;
 		}
 		else {
-			imageTexture->Update(pixles, res.x, res.y, 4, 1);
+			imageTexture->Update(pixles, res.x, res.y, 1);
 		}
 	}
 	else {
