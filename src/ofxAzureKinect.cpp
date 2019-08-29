@@ -21,22 +21,48 @@ ofxAzureKinect::~ofxAzureKinect()
 
 void ofxAzureKinect::init() {
 	//confif setting
-	config = K4A_DEVICE_CONFIG_INIT_DISABLE_ALL;
-	config.color_format = K4A_IMAGE_FORMAT_COLOR_BGRA32;
-	config.color_resolution = K4A_COLOR_RESOLUTION_720P;
-	//config.depth_mode = K4A_DEPTH_MODE_NFOV_UNBINNED;
-	config.depth_mode = K4A_DEPTH_MODE_WFOV_2X2BINNED;
-	config.camera_fps = K4A_FRAMES_PER_SECOND_30;
+	this->config = K4A_DEVICE_CONFIG_INIT_DISABLE_ALL;
+	this->config.color_format = K4A_IMAGE_FORMAT_COLOR_BGRA32;
+	this->config.color_resolution = K4A_COLOR_RESOLUTION_720P;
+	this->config.camera_fps = K4A_FRAMES_PER_SECOND_30;
 
 	//image texture
-	imageTexture = new ofxTexture();
-	imageTexture->showInfo();
+	this->colorTexture = new ofxTexture();
+	this->colorTexture->showInfo();
+	
 
 	//display
-	colorDisplay = new ofxDisplay(ofVec2f(1280, 720));
-	depthDisplay = new ofxDisplay(ofVec2f(512, 512));
+	this->colorDisplay = new ofxDisplay(ofVec2f(1280, 720));
+	
 	//shader
 	shader.load("shadersGL2/shader");
+}
+
+
+void ofxAzureKinect::selectDepthMode(DepthCameraMode depthMode) {
+	this->depthCameraMode = depthMode;
+
+	switch (this->depthCameraMode)
+	{
+	case DEPTH_MODE_NFOV_2X2BINNED:
+		this->config.depth_mode = K4A_DEPTH_MODE_NFOV_2X2BINNED;
+		this->depthDisplay = new ofxDisplay(ofVec2f(320, 288));
+		break;
+	case DEPTH_MODE_NFOV_UNBINNED:
+		this->config.depth_mode = K4A_DEPTH_MODE_NFOV_UNBINNED;
+		this->depthDisplay = new ofxDisplay(ofVec2f(640, 576));
+		break;
+	case DEPTH_MODE_WFOV_2X2BINNED:
+		this->config.depth_mode = K4A_DEPTH_MODE_WFOV_2X2BINNED;
+		this->depthDisplay = new ofxDisplay(ofVec2f(512, 512));
+		break;
+	case DEPTH_MODE_WFOV_UNBINNED:
+		cout << "DepthMode : " << "K4A_DEPTH_MODE_WFOV_UNBINNED" << endl;
+		this->config.depth_mode = K4A_DEPTH_MODE_WFOV_UNBINNED;
+		this->depthDisplay = new ofxDisplay(ofVec2f(1024, 1024));
+		break;
+	}
+	
 }
 
 bool ofxAzureKinect::open() {
@@ -86,67 +112,51 @@ void ofxAzureKinect::captureImage(){
 		}
 
 		if (!isUpload) {
-			imageTexture->Upload(pixles, res.x, res.y, 4, 0);
+			colorTexture->Upload(pixles, res.x, res.y, 4, 0);
 			isUpload = true;
 		}
 		else {
-			imageTexture->Update(pixles, res.x, res.y, 0);
+			colorTexture->Update(pixles, res.x, res.y, 0);
 		}
 		k4a_image_release(color_image);
 		k4a_capture_release(capture);
 	}
 }
 
-/*
- case K4A_DEPTH_MODE_NFOV_2X2BINNED:
-		return { 320, 288 };
-	case K4A_DEPTH_MODE_NFOV_UNBINNED:
-		return { 640, 576 };
-	case K4A_DEPTH_MODE_WFOV_2X2BINNED:
-		return { 512, 512 };
-	case K4A_DEPTH_MODE_WFOV_UNBINNED:
-		return { 1024, 1024 };
-	case K4A_DEPTH_MODE_PASSIVE_IR:
-		return { 1024, 1024 };
-
-*/
 void ofxAzureKinect::captureDepth() {
-	k4a_device_get_capture(device, &capture, TIMEOUT_IN_MS);
-	depth_image = k4a_capture_get_depth_image(capture);
 	
-	if (depth_image) {
-		ofVec2f res = ofVec2f(k4a_image_get_width_pixels(depth_image), k4a_image_get_height_pixels(depth_image));
-		//std::cout << "DepthImage : " << res.x << ", " << res.y << endl;
-		
-		uint8_t *pixles = k4a_image_get_buffer(depth_image);
-		
-		if (pixles == nullptr) {
-			cout << "could't get pixel data" << endl;
-		}
-		if (!isRecored) {
-			recorder("Recored.txt", res, 4, pixles);
-			isRecored = true;
-		}
+	
+	if (k4a_device_get_capture(device, &capture, TIMEOUT_IN_MS) == K4A_WAIT_RESULT_SUCCEEDED) {
+		depth_image = k4a_capture_get_depth_image(capture);
+		if (depth_image) {
+			ofVec2f res = ofVec2f(k4a_image_get_width_pixels(depth_image), k4a_image_get_height_pixels(depth_image));
+			std::cout << "DepthImage : " << res.x << ", " << res.y << endl;
 
+			uint8_t *pixles = k4a_image_get_buffer(depth_image);
 
-		
-
-		if (!isUpload) {
-			imageTexture->Upload(pixles, res.x, res.y, 4, 1);
-			isUpload = true;
+			if (pixles == nullptr) {
+				cout << "could't get pixel data" << endl;
+			}
+			if (!isRecored) {
+				recorder("Recored.txt", res, 4, pixles);
+				isRecored = true;
+			}
+			if (!isUpload) {
+				colorTexture->Upload(pixles, res.x, res.y, 4, 1);
+				isUpload = true;
+			}
+			else {
+				colorTexture->Upload(pixles, res.x, res.y, 4, 1);
+				//colorTexture->Update(pixles, res.x, res.y, 1);
+			}
+			k4a_capture_release(capture);
 		}
 		else {
-			imageTexture->Update(pixles, res.x, res.y, 1);
+			cout << "failed to capture depth image" << endl;
 		}
+		k4a_image_release(depth_image);
 	}
-	else {
-		cout << "failed to capture depth image" << endl;
-	}
-
-
-
-	k4a_image_release(depth_image);
-	k4a_capture_release(capture);
+	
 }
 
 void ofxAzureKinect::preview() {

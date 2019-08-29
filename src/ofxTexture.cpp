@@ -61,39 +61,13 @@ void ofxTexture::Upload(uint8_t* data, int w, int h, int ch, int textureMode) {
 	}
 
 	//depth
-	/*
 	else if (textureMode == 1) {
-		int num = w * h * 2;
-		pixels = new uint8_t[num];
-		int offSet = 0;
-		for (int y = 0; y < 512; y++) {
-			for (int x = 0; x < 512; x++) {
-				int index = (x + y * w) * 2;
-				int _index = (x + y * w) * 2;
-
-				
-				if (debug % 1000 == 0) {
-					std::cout << unsigned(data[index]) << std::endl;
-					std::cout << unsigned(data[index + 1]) << std::endl;
-				}
-
-				pixels[index] = data[_index + 1];
-				pixels[index + 1] = data[_index];
-				//pixels[index + 2] = 0.0;
-				//pixels[index + 3] = 0.0;
-			}
-			debug++;
-		}
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, w, h, 0, GL_RG, GL_UNSIGNED_BYTE, reinterpret_cast<unsigned char*>(pixels));
-	}
-	*/
-	
-	else if (textureMode == 1) {
-		int num = w * h * 1;
+		cout << "resolution : " << w << ", " << h << endl;
+		int num = w * h;
 		depth = new unsigned short[num];
 		int offSet = 0;
-		for (int y = 0; y < 512; y++) {
-			for (int x = 0; x < 512; x++) {
+		for (int y = 0; y < w; y++) {
+			for (int x = 0; x < h; x++) {
 				int depthDataIndex = (x + y * w) * 2;
 				int pixleDataIndex = (x + y * w);
 				//low data[index], up data[index + 1]
@@ -104,9 +78,9 @@ void ofxTexture::Upload(uint8_t* data, int w, int h, int ch, int textureMode) {
 				depth[pixleDataIndex] = depth16;
 			}
 		}
+		
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, depth);
 	}
-	
 }
 
 void ofxTexture::Update(uint8_t* data, int w, int h, int textureMode) {
