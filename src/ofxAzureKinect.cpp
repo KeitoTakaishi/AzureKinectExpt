@@ -24,22 +24,23 @@ void ofxAzureKinect::init() {
 	this->config = K4A_DEVICE_CONFIG_INIT_DISABLE_ALL;
 	this->config.color_format = K4A_IMAGE_FORMAT_COLOR_BGRA32;
 	this->config.color_resolution = K4A_COLOR_RESOLUTION_720P;
-	this->config.camera_fps = K4A_FRAMES_PER_SECOND_30;
+	this->config.camera_fps = K4A_FRAMES_PER_SECOND_15;	
 
 	//image texture
 	this->colorTexture = new ofxTexture();
 	this->colorTexture->showInfo();
-	
-
+	this->depthTexture = new ofxTexture();
+	this->depthTexture->showInfo();
 	//display
 	this->colorDisplay = new ofxDisplay(ofVec2f(1280, 720));
 	
 	//shader
-	shader.load("shadersGL2/shader");
+	depthImageShader.load("shadersGL2/shader.vert", "shadersGL2/depthShader.frag");
+	colorImageShader.load("shadersGL2/shader.vert", "shadersGL2/colorShader.frag");
 }
 
 
-void ofxAzureKinect::selectDepthMode(DepthCameraMode depthMode) {
+void ofxAzureKinect::makeConfig(DepthCameraMode depthMode) {
 	this->depthCameraMode = depthMode;
 
 	switch (this->depthCameraMode)
@@ -58,7 +59,15 @@ void ofxAzureKinect::selectDepthMode(DepthCameraMode depthMode) {
 		break;
 	case DEPTH_MODE_WFOV_UNBINNED:
 		cout << "DepthMode : " << "K4A_DEPTH_MODE_WFOV_UNBINNED" << endl;
+		//only runs at 15FPS or less
 		this->config.depth_mode = K4A_DEPTH_MODE_WFOV_UNBINNED;
+		this->depthDisplay = new ofxDisplay(ofVec2f(1024, 1024));
+		break;
+
+	case DEPTH_MODE_PASSIVE_IR:
+		cout << "DepthMode : " << "K4A_DEPTH_MODE_PASSIVE_IR" << endl;
+		//only runs at 15FPS or less
+		this->config.depth_mode = K4A_DEPTH_MODE_PASSIVE_IR;
 		this->depthDisplay = new ofxDisplay(ofVec2f(1024, 1024));
 		break;
 	}
@@ -124,13 +133,11 @@ void ofxAzureKinect::captureImage(){
 }
 
 void ofxAzureKinect::captureDepth() {
-	
-	
 	if (k4a_device_get_capture(device, &capture, TIMEOUT_IN_MS) == K4A_WAIT_RESULT_SUCCEEDED) {
 		depth_image = k4a_capture_get_depth_image(capture);
 		if (depth_image) {
 			ofVec2f res = ofVec2f(k4a_image_get_width_pixels(depth_image), k4a_image_get_height_pixels(depth_image));
-			std::cout << "DepthImage : " << res.x << ", " << res.y << endl;
+			//std::cout << "DepthImage : " << res.x << ", " << res.y << endl;
 
 			uint8_t *pixles = k4a_image_get_buffer(depth_image);
 
@@ -156,20 +163,40 @@ void ofxAzureKinect::captureDepth() {
 		}
 		k4a_image_release(depth_image);
 	}
+	else {
+		std::cout << "failed capture" << endl;
+	}
 	
 }
 
 void ofxAzureKinect::preview() {
 	cam.begin();
 	//cam.disableMouseInput();
-	shader.begin();
-	shader.setUniform1f("tex0", 1);
 
+	
+	/*
+	colorImageShader.begin();
+	//glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, *(colorTexture->getTexID()));
+	depthImageShader.setUniform1f("tex0", 0);
 	ofPushMatrix();
+	//ofTranslate((-ofGetWidth() / 2.0 + colorDisplay->getSize().x / 2.0), ofGetHeight() / 2.0 - colorDisplay->getSize().y / 2.0);
+	colorDisplay->draw();
+	ofPopMatrix();
+	colorImageShader.end();
+	*/
+	
+	
+	depthImageShader.begin();
+	//glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, *(depthTexture->getTexID()));
+	depthImageShader.setUniform1f("tex0", 1);
+	ofPushMatrix();
+	ofTranslate( (ofGetWidth()/2.0 - depthDisplay->getSize().x/2.0), -ofGetHeight() / 2.0 + depthDisplay->getSize().y / 2.0);
 	depthDisplay->draw();
 	ofPopMatrix();
-	//colorDisplay->draw();
-	shader.end();
+	depthImageShader.end();	
+	
 	cam.end();
 }
 
@@ -190,5 +217,6 @@ void ofxAzureKinect::recorder(string path, ofVec2f res, int ch, uint8_t* pixles)
 
 
 void ofxAzureKinect::reloadShader() {
-	shader.load("shadersGL2/shader");
+	depthImageShader.load("shadersGL2/shader.vert", "shadersGL2/depthShader.frag");
+	colorImageShader.load("shadersGL2/shader.vert", "shadersGL2/colorShader.frag");
 }

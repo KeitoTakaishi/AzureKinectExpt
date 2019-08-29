@@ -5,6 +5,7 @@
 class ofxTexture {
 public:
 	ofxTexture();
+	ofxTexture(int n);
 	~ofxTexture() {
 		glDeleteTextures(1, &texID);
 	}
@@ -16,8 +17,7 @@ public:
 	
 
 	void showInfo();
-	GLuint* getTexID;
-
+	GLuint* getTexID();
 private:
 	unsigned char *pixels;
 	GLuint texID;

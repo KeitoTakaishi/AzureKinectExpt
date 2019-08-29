@@ -3,7 +3,7 @@
 ofxTexture::ofxTexture() {
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
-	glGenTextures(2, &texID);
+	glGenTextures(1, &texID);
 	glBindTexture(GL_TEXTURE_2D, texID);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -11,6 +11,25 @@ ofxTexture::ofxTexture() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
+
+ofxTexture::ofxTexture(int num) {
+	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glGenTextures(1, &texID);
+	if (num == 0) {
+		glActiveTexture(GL_TEXTURE0);
+	}
+	else {
+		glActiveTexture(GL_TEXTURE1);
+	}
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+}
+
 
 void ofxTexture::DebugTexture(int w, int h, int ch) {
 	unsigned char *pixels;
@@ -46,8 +65,8 @@ void ofxTexture::Upload(uint8_t* data, int w, int h, int ch, int textureMode) {
 	if (textureMode == 0) {
 		int num = w * h * 4;
 		pixels = new uint8_t[num];
-		for (int y = 0; y < 720; y++) {
-			for (int x = 0; x < 1280; x++) {
+		for (int y = 0; y < h; y++) {
+			for (int x = 0; x < w; x++) {
 				int index = (x + y * w) * 4;
 				//bgra
 				pixels[index] = data[index + 2];
@@ -62,12 +81,12 @@ void ofxTexture::Upload(uint8_t* data, int w, int h, int ch, int textureMode) {
 
 	//depth
 	else if (textureMode == 1) {
-		cout << "resolution : " << w << ", " << h << endl;
+		//cout << "resolution : " << w << ", " << h << endl;
 		int num = w * h;
 		depth = new unsigned short[num];
 		int offSet = 0;
-		for (int y = 0; y < w; y++) {
-			for (int x = 0; x < h; x++) {
+		for (int y = 0; y < h; y++) {
+			for (int x = 0; x < w; x++) {
 				int depthDataIndex = (x + y * w) * 2;
 				int pixleDataIndex = (x + y * w);
 				//low data[index], up data[index + 1]
@@ -91,6 +110,9 @@ void ofxTexture::Update(uint8_t* data, int w, int h, int textureMode) {
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, data);
 	}
 	 
+}
+GLuint* ofxTexture::getTexID() {
+	return &texID;
 }
 
 

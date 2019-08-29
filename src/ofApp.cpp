@@ -9,15 +9,15 @@ void ofApp::setup(){
 	int depthMode;
 	cout << "please select depthMode" << endl;
 	cout << "containts" << endl;
-	cout << "NFOV_2X2BINNE : 0, NFOV_UNBINNE : 1, WFOV_2X2BINNED : 2, WFOV_UNBINNED : 3" << endl;
+	cout << "NFOV_2X2BINNE : 0, NFOV_UNBINNE : 1, WFOV_2X2BINNED : 2, WFOV_UNBINNED : 3 PASSIVE_IR : 4" << endl;
 	cin >> depthMode;
-	kinect->selectDepthMode((ofxAzureKinect::DepthCameraMode)depthMode);
+	kinect->makeConfig((ofxAzureKinect::DepthCameraMode)depthMode);
 	kinect->open();
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	
+	ofSetWindowTitle(to_string(ofGetFrameRate()));
 	//kinect->captureImage();
 	kinect->captureDepth();
 	

@@ -17,13 +17,13 @@ public:
 		DEPTH_MODE_NFOV_UNBINNED = 1,
 		DEPTH_MODE_WFOV_2X2BINNED = 2,
 		DEPTH_MODE_WFOV_UNBINNED = 3,
-		//K4A_DEPTH_MODE_PASSIVE_IR = 4,
+		DEPTH_MODE_PASSIVE_IR = 4,
 	};
 
 	//texture‚Ì—pˆÓ
 	void init();
 	//depth mode ‚Ì‘I‘ð
-	void selectDepthMode(DepthCameraMode depthMode);
+	void makeConfig(DepthCameraMode depthMode);
 	//camera start, opne
 	bool open();
 	void captureImage();
@@ -57,9 +57,11 @@ private:
 	bool isUpload;
 
 
-	ofxTexture* colorTexture;// for colorTexture
-	
-	ofShader shader;
+	ofxTexture* colorTexture;
+	ofxTexture* depthTexture;
+
+	ofShader depthImageShader;
+	ofShader colorImageShader;
 	ofEasyCam cam;
 };
 
